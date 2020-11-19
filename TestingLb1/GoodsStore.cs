@@ -1,16 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TestingLb1
 {
     class GoodsStore
     {
-
+        //Коллекция товаров
         private Dictionary<string, Product> Products { get; set; }
 
+        //Коллекция для хранения информации о продажах
         private Dictionary<string, Product> Statistics { get; set; }
 
+
+        //Инициализация
         public GoodsStore()
         {
             Products = new Dictionary<string, Product>();
@@ -18,12 +20,19 @@ namespace TestingLb1
         }
 
 
+        //Структура, хранящая информацию о товарах
         public struct Product
         {
             public int count;
             public int price;
         }
 
+        /// <summary>
+        /// Покупка товара
+        /// </summary>
+        /// <param name="name">Название товара</param>
+        /// <param name="count">Количество товара</param>
+        /// <returns>Результат выполнения операции</returns>
         public bool Buy(string name, int count)
         {
             if (string.IsNullOrEmpty(name))
@@ -54,6 +63,11 @@ namespace TestingLb1
             }
         }
 
+        /// <summary>
+        /// Подсчёт прибыли
+        /// </summary>
+        /// <param name="name">Название товара</param>
+        /// <returns>Общую прибыль с продажи указанного вида товара</returns>
         public double totalProductIncome(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -71,6 +85,14 @@ namespace TestingLb1
             return income;
         }
 
+
+        /// <summary>
+        /// Оформление возврата товара
+        /// </summary>
+        /// <param name="name">Название товара</param>
+        /// <param name="count">Количество товаров</param>
+        /// <param name="quality">Качество возвращаемого товара</param>
+        /// <returns>Результат выполнения операции</returns>
         public bool PerformRefund(string name,int count, bool quality)
         {
             if (string.IsNullOrEmpty(name))
@@ -96,6 +118,13 @@ namespace TestingLb1
             return true;         
         }
 
+
+        /// <summary>
+        /// Завоз товаров в магазин
+        /// </summary>
+        /// <param name="name">Название товара</param>
+        /// <param name="count">Количество товара</param>
+        /// <returns>Результат выполнения операции</returns>
         public bool ImportGoods(string name, int count)
         {
             if (string.IsNullOrEmpty(name))
@@ -115,6 +144,12 @@ namespace TestingLb1
 
         }
 
+        /// <summary>
+        /// Изменение цены на товар
+        /// </summary>
+        /// <param name="name">Название товара</param>
+        /// <param name="newValue">Новое значение цены</param>
+        /// <returns></returns>
         public bool ChangeProductPrice(string name, int newValue)
         {
             if (string.IsNullOrEmpty(name))
@@ -133,6 +168,13 @@ namespace TestingLb1
             return true;
         }
 
+
+        /// <summary>
+        /// Добавление нового товара в коллекцию товаров
+        /// </summary>
+        /// <param name="name">Название товара</param>
+        /// <param name="product">Информация о товаре</param>
+        /// <returns>Результат выполнения операции</returns>
         public bool AddNewProduct(string name, Product? product)
         {
             if (string.IsNullOrEmpty(name))
@@ -147,10 +189,13 @@ namespace TestingLb1
             Statistics.Add(name, new Product { count = 0, price = 0 });
 
             return true;
-        }
+        }   
 
-         
-
+        /// <summary>
+        /// Удаление товара из коллекции товаров
+        /// </summary>
+        /// <param name="name">Название товара</param>
+        /// <returns>Результат выполнения операции</returns>
         public bool DeleteProduct(string name)
         {
             if (name == null)
@@ -164,6 +209,12 @@ namespace TestingLb1
             return true;
         }
 
+
+        /// <summary>
+        /// Проверка существования товара в коллекции товаров
+        /// </summary>
+        /// <param name="name">Название товара</param>
+        /// <returns>Результат выполнения операции</returns>
         public bool ProductExist(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -171,8 +222,6 @@ namespace TestingLb1
 
             return Products.ContainsKey(name);
         }
-
-
 
     }
 }
