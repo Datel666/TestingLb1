@@ -1,0 +1,15 @@
+os: Visual Studio 2019
+
+platform: Any CPU
+
+configuration:
+ - Debug
+ - Release
+
+ test_script:
+  - node --version
+  - npm --version
+  - cmd: npm test
+
+before_build:
+ - nuget restore
