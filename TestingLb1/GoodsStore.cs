@@ -1,226 +1,135 @@
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using static TestingLb1.GoodsStore;
 
 namespace TestingLb1
 {
-    class GoodsStore
+    public class Tests
     {
-        //Коллекция товаров
-        private Dictionary<string, Product> Products { get; set; }
 
-        //Коллекция для хранения информации о продажах
-        private Dictionary<string, Product> Statistics { get; set; }
+        GoodsStore gs;
 
-
-        //Инициализация
-        public GoodsStore()
+        [SetUp]
+        public void Setup()
         {
-            Products = new Dictionary<string, Product>();
-            Statistics = new Dictionary<string, Product>();
-        }
+            gs = new GoodsStore();
+            Dictionary<string, Product> products = new Dictionary<string, Product>();
+            products.Add("Древесный уголь 5кг", new Product { count = 20, price = 300 });
+            products.Add("Плоская кисть 50мм", new Product { count = 10, price = 100 });
+            products.Add("Плоская кисть 100мм", new Product { count = 10, price = 150 });
+            products.Add("Набор отвёрток", new Product { count = 10, price = 1000 });
+            products.Add("Стиральный порошок 500г", new Product { count = 20, price = 190 });
+            products.Add("Хозяйственные перчатки x10", new Product { count = 40, price = 120 });
+            products.Add("Двухсторонний скотч", new Product { count = 40, price = 200 });
+            products.Add("Изолента", new Product { count = 50, price = 80 });
+            products.Add("Губки для мытья посуды x10", new Product { count = 25, price = 70 });
 
-
-        //Структура, хранящая информацию о товарах
-        public struct Product
-        {
-            public int count;
-            public int price;
-        }
-
-        /// <summary>
-        /// Покупка товара
-        /// </summary>
-        /// <param name="name">Название товара</param>
-        /// <param name="count">Количество товара</param>
-        /// <returns>Результат выполнения операции</returns>
-        public bool Buy(string name, int count)
-        {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
-
-            if (!Products.ContainsKey(name))
-                throw new Exception("Товар не существует");
-
-            if (count < 1)
-                throw new Exception("Не верное количество товара для покупки");
-
-            if (Products[name].count < count)
+            foreach (var product in products)
             {
-                return false;
-            }
-            else
-            {
-                var product = Products[name];
-                product.count -= count;
-                Products[name] = product;
-
-                var productIncome = Statistics[name];
-                productIncome.count += count;
-                productIncome.price += product.price * count;
-                Statistics[name] = productIncome;
-
-                return true;
+                gs.AddNewProduct(product.Key, product.Value);
             }
         }
 
-        /// <summary>
-        /// Подсчёт прибыли
-        /// </summary>
-        /// <param name="name">Название товара</param>
-        /// <returns>Общую прибыль с продажи указанного вида товара</returns>
-        public double totalProductIncome(string name)
+        //Покупка товара
+        [Test]
+        public void BuyingProductTest()
         {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
+            Assert.IsTrue(gs.Buy("Изолента", 1)); // successful product buying
 
-            if (!Statistics.ContainsKey(name))
-                throw new Exception("Товар не существует");
+            Assert.That(Assert.Throws<Exception>(() => gs.Buy("pepega", 1)).Message, Is.EqualTo("Товар не существует")); // unexisting product
+            Assert.That(Assert.Throws<Exception>(() => gs.Buy("Изолента", -1)).Message, Is.EqualTo("Не верное количество товара для покупки")); // unexisting product
+            Assert.IsFalse(gs.Buy("Набор отвёрток", 20)); // buying a greater amount of products than available
+        }
 
-            double income = 0;
-            foreach(var product in Statistics)
-            {
-                if(product.Key == name)
-                income += product.Value.price;
-            }
-            return income;
+        //Количество товара
+        [Test]
+        public void CheckProductCountTest()
+        {
+            Assert.AreEqual(20, gs.productcount("Древесный уголь 5кг")); //successfull product count check
+
+            Assert.That(Assert.Throws<Exception>(() => gs.productcount("pepega")).Message, Is.EqualTo("Товар не существует")); // unexisting product
+            Assert.That(Assert.Throws<ArgumentNullException>(() => gs.productcount(null)).ParamName, Is.EqualTo("name")); // null product
         }
 
 
-        /// <summary>
-        /// Оформление возврата товара
-        /// </summary>
-        /// <param name="name">Название товара</param>
-        /// <param name="count">Количество товаров</param>
-        /// <param name="quality">Качество возвращаемого товара</param>
-        /// <returns>Результат выполнения операции</returns>
-        public bool PerformRefund(string name,int count, bool quality)
+        //Завоз товара
+        [Test]
+        public void ImportTest()
         {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
+            Assert.IsTrue(gs.ImportGoods("Изолента", 15)); // successful product import
 
-            if (!Products.ContainsKey(name))
-                throw new Exception("Товар не существует");
-
-            if (count < 1)
-                throw new Exception("Не верное количество товара для возврата");
-
-            var product = Products[name];
-            if (quality)
-            {
-                product.count += count;
-                Products[name] = product;
-            }
-
-            var productIncome = Statistics[name];
-            productIncome.price -= product.price * count;
-            Statistics[name] = productIncome;
-
-            return true;         
+            Assert.That(Assert.Throws<Exception>(() => gs.ImportGoods("pepega", 1)).Message, Is.EqualTo("Товар не существует")); // unexisting product
+            Assert.That(Assert.Throws<Exception>(() => gs.ImportGoods("Изолента", 0)).Message, Is.EqualTo("Не верное количество товара для импорта")); // attempt to import wrong amount of products
+            Assert.That(Assert.Throws<ArgumentNullException>(() => gs.ImportGoods(null, 1)).ParamName, Is.EqualTo("name")); // attempt to import "null" product
         }
 
 
-        /// <summary>
-        /// Завоз товаров в магазин
-        /// </summary>
-        /// <param name="name">Название товара</param>
-        /// <param name="count">Количество товара</param>
-        /// <returns>Результат выполнения операции</returns>
-        public bool ImportGoods(string name, int count)
+        //Изменение цены товара
+        [Test]
+        public void AdjustingProductPriceTest()
         {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
+            Assert.IsTrue(gs.ChangeProductPrice("Двухсторонний скотч", 250)); // successful price adjusting
 
-            if (!Products.ContainsKey(name))
-                throw new Exception("Товар не существует");
-
-            if (count < 1)
-                throw new Exception("Не верное количество товара для импорта");
-
-            var product = Products[name];
-            product.count += count;
-            Products[name] = product;
-            
-            return true;
-
-        }
-
-        /// <summary>
-        /// Изменение цены на товар
-        /// </summary>
-        /// <param name="name">Название товара</param>
-        /// <param name="newValue">Новое значение цены</param>
-        /// <returns></returns>
-        public bool ChangeProductPrice(string name, int newValue)
-        {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
-
-            if (!Products.ContainsKey(name))
-                throw new Exception("Товар не существует");
-
-            if (newValue < 0)
-                throw new Exception("Попытка установить отрицательную цену на товар");
-
-            var product = Products[name];
-            product.price = newValue;
-            Products[name] = product;
-
-            return true;
+            Assert.That(Assert.Throws<Exception>(() => gs.ChangeProductPrice("pepega", 500)).Message, Is.EqualTo("Товар не существует")); // unexisting product
+            Assert.That(Assert.Throws<Exception>(() => gs.ChangeProductPrice("Изолента", -1)).Message, Is.EqualTo("Попытка установить отрицательную цену на товар")); // price is subzero (*_*) 
+            Assert.That(Assert.Throws<ArgumentNullException>(() => gs.ChangeProductPrice("", 500)).ParamName, Is.EqualTo("name")); // attempt to change product price with no name
         }
 
 
-        /// <summary>
-        /// Добавление нового товара в коллекцию товаров
-        /// </summary>
-        /// <param name="name">Название товара</param>
-        /// <param name="product">Информация о товаре</param>
-        /// <returns>Результат выполнения операции</returns>
-        public bool AddNewProduct(string name, Product? product)
+        //Добавление нового товара в коллецию товаров
+        [Test]
+        public void NewProductTest()
         {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
-            if (!product.HasValue)
-                throw new ArgumentNullException(nameof(product));
+            Assert.AreEqual(true, gs.AddNewProduct("pepega", new Product { count = 20, price = 666 })); // successful product addition
 
-            if (Products.ContainsKey(name))
-                throw new Exception("Товар уже числится в списке товара");
+            Assert.That(Assert.Throws<Exception>(() => gs.AddNewProduct("Изолента", new Product { count = 50, price = 20 })).Message, Is.EqualTo("Товар уже числится в списке товара")); // product is already exist
+            Assert.That(Assert.Throws<ArgumentNullException>(() => gs.AddNewProduct(null, new Product { count = 50, price = 20 })).ParamName, Is.EqualTo("name")); // attempt to add product with no name
+            Assert.That(Assert.Throws<ArgumentNullException>(() => gs.AddNewProduct("kek", null)).ParamName, Is.EqualTo("product")); // attempt to add "null" product
 
-            Products.Add(name, (Product)product);
-            Statistics.Add(name, new Product { count = 0, price = 0 });
-
-            return true;
-        }   
-
-        /// <summary>
-        /// Удаление товара из коллекции товаров
-        /// </summary>
-        /// <param name="name">Название товара</param>
-        /// <returns>Результат выполнения операции</returns>
-        public bool DeleteProduct(string name)
-        {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
-
-            if (!Products.ContainsKey(name))
-                throw new Exception("Товар не существует");
-
-            Products.Remove(name);
-
-            return true;
+            Assert.IsTrue(gs.ProductExist("pepega")); // product existing test
+            Assert.IsFalse(gs.ProductExist("kek")); // product existing test
         }
 
 
-        /// <summary>
-        /// Проверка существования товара в коллекции товаров
-        /// </summary>
-        /// <param name="name">Название товара</param>
-        /// <returns>Результат выполнения операции</returns>
-        public bool ProductExist(string name)
+        //Удаление товара из коллекции товаров
+        [Test]
+        public void DeleteProduct()
         {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
+            Assert.IsTrue(gs.DeleteProduct("Изолента")); // successful product deleting
 
-            return Products.ContainsKey(name);
+            Assert.That(Assert.Throws<Exception>(() => gs.DeleteProduct("kek")).Message, Is.EqualTo("Товар не существует")); // unexisting product
+            Assert.That(Assert.Throws<ArgumentNullException>(() => gs.DeleteProduct(null)).ParamName, Is.EqualTo("name")); //attempt to delete product with no name
+
+            Assert.IsFalse(gs.ProductExist("Изолента")); // product existing test
+        }
+
+
+        //Рассчёт дохода с продажи определённого вида товара
+        [Test]
+        public void TotalProductIncomeTest()
+        {
+            gs.Buy("Древесный уголь 5кг", 5);
+
+            Assert.AreEqual(1500, gs.totalProductIncome("Древесный уголь 5кг")); // successful product income calculating
+
+            Assert.That(Assert.Throws<Exception>(() => gs.totalProductIncome("kekega")).Message, Is.EqualTo("Товар не существует")); // unexisting product
+            Assert.That(Assert.Throws<ArgumentNullException>(() => gs.totalProductIncome(null)).ParamName, Is.EqualTo("name")); //attempt to calculate total income for product with no name
+        }
+
+
+        // Возврат товара
+        [Test]
+        public void RefundTest()
+        {
+            Assert.IsTrue(gs.PerformRefund("Двухсторонний скотч", 1, true)); // successful product refund
+
+            Assert.That(Assert.Throws<Exception>(() => gs.PerformRefund("kek", 1, true)).Message, Is.EqualTo("Товар не существует")); // unexisting product
+            Assert.That(Assert.Throws<Exception>(() => gs.PerformRefund("Изолента", -1, true)).Message, Is.EqualTo("Не верное количество товара для возврата")); // attempt to refund wrong amount of products
+            Assert.That(Assert.Throws<ArgumentNullException>(() => gs.PerformRefund(null, 1, true)).ParamName, Is.EqualTo("name")); // attempt to refurd product with no name
+
+            Assert.AreEqual(-200, gs.totalProductIncome("Двухсторонний скотч")); // product refund result
+
         }
 
     }
