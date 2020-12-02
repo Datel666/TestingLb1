@@ -25,7 +25,7 @@ namespace TestingLb1
             products.Add("Изолента", new Product { count = 50, price = 80 });
             products.Add("Губки для мытья посуды x10", new Product { count = 25, price = 70 });
 
-            foreach(var product in products)
+            foreach (var product in products)
             {
                 gs.AddNewProduct(product.Key, product.Value);
             }
@@ -40,6 +40,16 @@ namespace TestingLb1
             Assert.That(Assert.Throws<Exception>(() => gs.Buy("pepega", 1)).Message, Is.EqualTo("Товар не существует")); // unexisting product
             Assert.That(Assert.Throws<Exception>(() => gs.Buy("Изолента", -1)).Message, Is.EqualTo("Не верное количество товара для покупки")); // unexisting product
             Assert.IsFalse(gs.Buy("Набор отвёрток", 20)); // buying a greater amount of products than available
+        }
+
+        //Количество товара
+        [Test]
+        public void CheckProductCountTest()
+        {
+            Assert.AreEqual(20, gs.productcount("Древесный уголь 5кг")); //successfull product count check
+
+            Assert.That(Assert.Throws<Exception>(() => gs.productcount("pepega")).Message, Is.EqualTo("Товар не существует")); // unexisting product
+            Assert.That(Assert.Throws<ArgumentNullException>(() => gs.productcount(null)).ParamName, Is.EqualTo("name")); // null product
         }
 
 
@@ -69,7 +79,7 @@ namespace TestingLb1
 
         //Добавление нового товара в коллецию товаров
         [Test]
-        public void NewProductTest() 
+        public void NewProductTest()
         {
             Assert.AreEqual(true, gs.AddNewProduct("pepega", new Product { count = 20, price = 666 })); // successful product addition
 
@@ -114,9 +124,9 @@ namespace TestingLb1
         {
             Assert.IsTrue(gs.PerformRefund("Двухсторонний скотч", 1, true)); // successful product refund
 
-            Assert.That(Assert.Throws<Exception>(() => gs.PerformRefund("kek", 1,true)).Message, Is.EqualTo("Товар не существует")); // unexisting product
+            Assert.That(Assert.Throws<Exception>(() => gs.PerformRefund("kek", 1, true)).Message, Is.EqualTo("Товар не существует")); // unexisting product
             Assert.That(Assert.Throws<Exception>(() => gs.PerformRefund("Изолента", -1, true)).Message, Is.EqualTo("Не верное количество товара для возврата")); // attempt to refund wrong amount of products
-            Assert.That(Assert.Throws<ArgumentNullException>(() => gs.PerformRefund(null, 1,true)).ParamName, Is.EqualTo("name")); // attempt to refurd product with no name
+            Assert.That(Assert.Throws<ArgumentNullException>(() => gs.PerformRefund(null, 1, true)).ParamName, Is.EqualTo("name")); // attempt to refurd product with no name
 
             Assert.AreEqual(-200, gs.totalProductIncome("Двухсторонний скотч")); // product refund result
 
